@@ -31,9 +31,9 @@ import java.util.zip.GZIPOutputStream;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 
+import com.sun.org.apache.xml.internal.security.utils.Base64;
 import org.apache.commons.lang3.ArrayUtils;
 
-import com.sun.org.apache.xml.internal.security.utils.Base64;
 
 import packetproxy.util.PacketProxyUtility;
 

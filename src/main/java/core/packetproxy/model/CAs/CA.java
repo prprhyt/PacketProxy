@@ -15,6 +15,7 @@
  */
 package packetproxy.model.CAs;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +25,8 @@ import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.MessageDigest;
 import java.security.PrivateKey;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -44,6 +47,8 @@ import sun.security.x509.X509CertInfo;
 
 import packetproxy.util.PacketProxyUtility;
 import packetproxy.util.SimpleDNSName;
+
+import javax.security.auth.x500.X500Principal;
 
 abstract public class CA
 {
@@ -98,6 +103,11 @@ abstract public class CA
 		keyStoreCACertRoot = new X509CertImpl(caCert.getEncoded());
 		X509CertInfo caCertInfo = (X509CertInfo) this.keyStoreCACertRoot.get(X509CertImpl.NAME + "." + X509CertImpl.INFO);
 		X500Name issuer = (X500Name) caCertInfo.get(X509CertInfo.SUBJECT + "." + CertificateIssuerName.DN_NAME);
+
+		ByteArrayInputStream stream = new ByteArrayInputStream(caCert.getEncoded());
+		CertificateFactory cf = CertificateFactory.getInstance("X509");
+		X509Certificate certificate = (X509Certificate) cf.generateCertificate(stream);
+		X500Principal X500PrincipalIssuer = certificate.getSubjectX500Principal();
 
 		/* Templateの取り出し */
 		java.security.cert.Certificate templateCert = this.keyStoreCA.getCertificate(caTemplate);

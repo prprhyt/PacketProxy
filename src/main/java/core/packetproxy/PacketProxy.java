@@ -25,8 +25,6 @@ import javax.swing.JOptionPane;
 
 import org.apache.commons.io.IOUtils;
 
-import com.sun.org.apache.xml.internal.security.utils.I18n;
-
 import packetproxy.common.ClientKeyManager;
 import packetproxy.common.I18nString;
 import packetproxy.common.Utils;
