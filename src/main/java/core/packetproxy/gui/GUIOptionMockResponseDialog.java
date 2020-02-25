@@ -32,7 +32,7 @@ public class GUIOptionMockResponseDialog extends JDialog
 	private HintTextField text_ip = new HintTextField("(ex.) aaa.bbb.ccc.com or 1.2.3.4");
 	private HintTextField text_port = new HintTextField("(ex.) 80");
 	private HintTextField text_path = new HintTextField("(ex.) \\/sample\\/.*");
-	private HintTextArea text_mock_response = new HintTextArea("(ex.) "+DEFAULT_MOCK_RESPONSE, 600, 300);
+	private HintScrollableTextArea text_mock_response = new HintScrollableTextArea(new HintTextArea("(ex.) "+DEFAULT_MOCK_RESPONSE, 600, 300));
 	private HintTextField text_comment = new HintTextField("(ex.) game server for test");
 	private int height = 500;
 	private int width = 700;
