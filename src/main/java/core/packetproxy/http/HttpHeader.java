@@ -16,6 +16,7 @@
 package packetproxy.http;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -120,7 +121,17 @@ public class HttpHeader {
 		String header = toUTF8(rawHttp).split(newLineStr+newLineStr)[0];
 		List<String> lines = Arrays.asList(header.split(newLineStr));
 		statusLine = lines.get(0);
-		fields = lines.subList(1, lines.size()).stream().map(HeaderField::new).collect(Collectors.toList());
+
+		//Headerのfieldで改行コードが使われる場合があるので対策
+		List<String> headerLines = new ArrayList<>();
+		for(String l:lines.subList(1, lines.size())){
+			String newLineS = lookUpNewLineSymbol(l.getBytes());
+			if("".equals(newLineS)){
+				headerLines.add(l);
+			}
+			headerLines.addAll(Arrays.asList(l.split(newLineS)));
+		}
+		fields = headerLines.stream().map(HeaderField::new).collect(Collectors.toList());
 	}
 
 	public String getStatusline(){
@@ -142,11 +153,16 @@ public class HttpHeader {
 	}
 	
 	private String lookUpNewLineSymbol(byte[] input){
-		boolean hasCR = ArrayUtils.contains(input, (byte)13);
-		boolean hasLF = ArrayUtils.contains(input, (byte)10);
-		if(hasCR && hasLF)return toUTF8(crLf);
-		if(hasCR)return toUTF8(cr);
-		return toUTF8(lf);
+		int cr_i = ArrayUtils.indexOf(input, (byte)13);
+		int lf_i = ArrayUtils.indexOf(input, (byte)10);
+		if(ArrayUtils.INDEX_NOT_FOUND==cr_i) return toUTF8(lf);
+		if(ArrayUtils.INDEX_NOT_FOUND==lf_i) return toUTF8(cr);
+		int distance = lf_i-cr_i;
+		if(distance==1) return toUTF8(crLf);
+
+		//混在している場合は先に出現したほうを優先する
+		if(distance>0) return toUTF8(cr);
+		return "";
 	}
 
 }

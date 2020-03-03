@@ -17,6 +17,11 @@ package packetproxy.model;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+import packetproxy.common.StringUtils;
+import packetproxy.encode.EncodeHTTPBase;
+import packetproxy.http.Http;
+import packetproxy.http2.FramesBase;
+import packetproxy.http2.Http2;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -114,6 +119,21 @@ public class MockResponse
     public String getMockResponse(){
         return mockResponse;
     }
+
+    public byte[] getMockResponseH2(){
+        try {
+            Http http = new Http(mockResponse.getBytes());
+            http.updateHeader("X-PacketProxy-HTTP2-Flags", "4");
+            http.updateHeader("X-PacketProxy-HTTP2-Stream-Id", "111");
+            http.updateHeader("X-PacketProxy-HTTP2-Stream-UUID", StringUtils.randomUUID());
+            FramesBase http2 = new Http2();
+            return http2.encodeServerResponse(http.toByteArray());
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return mockResponse.getBytes();
+    }
+
     public void setMockResponse(String mockResponse){
         this.mockResponse = mockResponse;
     }

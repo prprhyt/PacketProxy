@@ -94,8 +94,15 @@ public class ProxyHttp extends Proxy
 										現時点ではMockResponseがHTTP/2で動かすとレスポンスが帰ってこない。
 										暫定でALPNにHTTP/1.0, HTTP/1.1を指定して回避している。
 										 */
-										clientE = EndpointFactory.createClientEndpointFromSNIServerName(client, http.getServerName(), listen_info.getCA().get(), null, new String[]{"http/1.1", "http/1.0"});
-										serverE = new MockEndPoint(http.getServerAddr(), mockResponse.getMockResponse().getBytes());
+										clientE = EndpointFactory.createClientEndpointFromSNIServerName(client, http.getServerName(), listen_info.getCA().get(), null, new String[]{"h2", "http/1.1", "http/1.0"});
+										byte[] mockResponseByte;
+										if("h2".equals(clientE.getApplicationProtocol())){
+											PacketProxyUtility.getInstance().packetProxyLog("alpn: h2!!!");
+											mockResponseByte = mockResponse.getMockResponseH2();
+										}else{
+											mockResponseByte = mockResponse.getMockResponse().getBytes();
+										}
+										serverE = new MockEndPoint(http.getServerAddr(), mockResponseByte);
 									}else if (listen_info.getServer() != null) { // upstream proxyに接続する時
 										SSLSocketEndpoint[] es = EndpointFactory.createBothSideSSLEndpoints(client, null, http.getServerAddr(), listen_info.getServer().getAddress(), http.getServerName(), listen_info.getCA().get());
 										clientE = es[0];
