@@ -112,6 +112,7 @@ public class HttpHeader {
 	}
 	
 	public HttpHeader(byte[] rawHttp){
+		String a = toUTF8(rawHttp);
 		newLineSymbol = lookUpNewLineSymbol(rawHttp);
 		String newLineStr = newLineSymbol;
 		// パケットの先頭に改行が含まれているパターンがあるので回避
@@ -128,6 +129,10 @@ public class HttpHeader {
 			String newLineS = lookUpNewLineSymbol(l.getBytes());
 			if("".equals(newLineS)){
 				headerLines.add(l);
+				if(l.contains("body")){
+					int b = 0;
+					b+=1;
+				}
 			}
 			headerLines.addAll(Arrays.asList(l.split(newLineS)));
 		}

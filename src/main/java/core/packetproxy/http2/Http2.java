@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.jetty.http2.hpack.HpackDecoder;
 import org.eclipse.jetty.http2.hpack.HpackEncoder;
 
 import packetproxy.common.UniqueID;
@@ -74,6 +75,15 @@ public class Http2 extends FramesBase
 		for (Frame frame : FrameUtils.parseFrames(frames)) {
 			if (frame instanceof HeadersFrame) {
 				HeadersFrame headersFrame = (HeadersFrame)frame;
+				ByteArrayOutputStream headersFrameStream = new ByteArrayOutputStream();
+				headersFrameStream.write(headersFrame.getHttp());
+				if(headersFrameStream.size()==0){
+					HpackDecoder decoder = super.getServerHpackDecoder();
+					if(null==decoder){
+						decoder = new HpackDecoder(4096, 4096);
+					}
+					headersFrame = new HeadersFrame(((HeadersFrame) frame).toByteArrayWithoutExtra(super.getServerHpackEncoder()), decoder);
+				}
 				out.write(headersFrame.getHttp());
 			} else if (frame instanceof DataFrame) {
 				DataFrame dataFrame = (DataFrame)frame;

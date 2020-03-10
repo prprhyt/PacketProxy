@@ -17,12 +17,15 @@ package packetproxy.model;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+import org.apache.commons.codec.binary.Hex;
 import packetproxy.common.StringUtils;
 import packetproxy.encode.EncodeHTTPBase;
 import packetproxy.http.Http;
 import packetproxy.http2.FramesBase;
 import packetproxy.http2.Http2;
+import packetproxy.http2.frames.SettingsFrame;
 
+import java.io.ByteArrayOutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
@@ -127,7 +130,12 @@ public class MockResponse
             http.updateHeader("X-PacketProxy-HTTP2-Stream-Id", "111");
             http.updateHeader("X-PacketProxy-HTTP2-Stream-UUID", StringUtils.randomUUID());
             FramesBase http2 = new Http2();
-            return http2.encodeServerResponse(http.toByteArray());
+            byte[] data = Hex.decodeHex("000012040000000000000300000064000400100000000600004000".toCharArray());
+            SettingsFrame sf = new SettingsFrame(data);
+            ByteArrayOutputStream out  = new ByteArrayOutputStream();
+            out.write(sf.toByteArray());
+            out.write(http.toByteArray());
+            return out.toByteArray();
         }catch (Exception e){
             e.printStackTrace();
         }
