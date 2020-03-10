@@ -127,14 +127,12 @@ public class MockResponse
         try {
             Http http = new Http(mockResponse.getBytes());
             http.updateHeader("X-PacketProxy-HTTP2-Flags", "4");
-            http.updateHeader("X-PacketProxy-HTTP2-Stream-Id", "111");
+            //TODO: Requestと同じStream-Idを動的に設定する(同じStream-Idでないとクライアント側がframeのparseに失敗するため)
+            http.updateHeader("X-PacketProxy-HTTP2-Stream-Id", "1");
             http.updateHeader("X-PacketProxy-HTTP2-Stream-UUID", StringUtils.randomUUID());
             FramesBase http2 = new Http2();
-            byte[] data = Hex.decodeHex("000012040000000000000300000064000400100000000600004000".toCharArray());
-            SettingsFrame sf = new SettingsFrame(data);
             ByteArrayOutputStream out  = new ByteArrayOutputStream();
-            out.write(sf.toByteArray());
-            out.write(http.toByteArray());
+            out.write(http2.encodeServerResponse(http.toByteArray()));
             return out.toByteArray();
         }catch (Exception e){
             e.printStackTrace();
