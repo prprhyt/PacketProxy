@@ -60,6 +60,12 @@ public class MockEndPoint implements Endpoint {
                 EncodeHTTP encodeHTTP = new EncodeHTTP("h2");
                 byte [] ret2 = encodeHTTP.decodeClientRequest(ret);
                 Http http = new Http(ret2);
+                if(0==ret2.length){
+                    return null;
+                }
+                if(null==http.getMethod()){
+                    return null;
+                }
                 String streamId = http.getHeader("x-packetproxy-http2-stream-id").get(0);
                 //byte[] ret3 = encodeHTTP.decodeServerResponse(mockResponseData);
                 /*Http http_ = new Http(ret3);
