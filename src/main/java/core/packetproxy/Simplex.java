@@ -34,7 +34,7 @@ import org.apache.commons.lang3.ArrayUtils;
 
 import packetproxy.util.PacketProxyUtility;
 
-class Simplex extends Thread
+public class Simplex extends Thread
 {
 	private final int TIMEOUT = 30 * 1000;
 	private InputStream in;
