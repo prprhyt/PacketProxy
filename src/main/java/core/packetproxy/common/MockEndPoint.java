@@ -29,10 +29,10 @@ public class MockEndPoint implements Endpoint {
     }
 
     private void init(byte[] mockResponseData) throws Exception{
-        mockInputStream = new DelayByteArrayInputStream(mockResponseData);
+        //mockInputStream = new DelayByteArrayInputStream(mockResponseData);
 
-        //mockInputStream = new DelayPipedInputStream(65536);
-        //PipedOutputStream pos = new PipedOutputStream((PipedInputStream) mockInputStream);
+        mockInputStream = new DelayPipedInputStream(65536);
+        PipedOutputStream pos = new PipedOutputStream((PipedInputStream) mockInputStream);
         //mockInputStream.transferTo(bao);
 
         mockPipedInputStream = new PipedInputStream(65536);
@@ -67,11 +67,12 @@ public class MockEndPoint implements Endpoint {
                     return null;
                 }
                 String streamId = http.getHeader("x-packetproxy-http2-stream-id").get(0);
-                //byte[] ret3 = encodeHTTP.decodeServerResponse(mockResponseData);
-                /*Http http_ = new Http(ret3);
+                byte[] ret3 = encodeHTTP.decodeServerResponse(mockResponseData);
+                Http http_ = new Http(ret3);
                 http_.updateHeader("x-packetproxy-http2-stream-id", streamId);
                 FramesBase http2 = new Http2();
-                pos.write(http2.encodeServerResponse(http_.toByteArray()));*/
+                Http http__ = new Http(http_.toByteArray());
+                pos.write(http2.encodeServerResponse(http_.toByteArray()));
                 //mockInputStream.reset();
                 streamIds.add(streamId);
                 return ret;
