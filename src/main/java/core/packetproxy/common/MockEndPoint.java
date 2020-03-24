@@ -4,16 +4,19 @@ import packetproxy.Simplex;
 import packetproxy.encode.EncodeHTTP;
 import packetproxy.encode.EncodeHTTPBase;
 import packetproxy.http.Http;
+import packetproxy.http2.FramesBase;
+import packetproxy.http2.Http2;
 
 import java.io.*;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 
 public class MockEndPoint implements Endpoint {
     private InputStream mockInputStream;
     private PipedOutputStream mockOutputStream;
     private PipedInputStream mockPipedInputStream;
     private ByteArrayOutputStream inputClientData = new ByteArrayOutputStream();
-    //private OutputStream mockOutputStream;
+    private ArrayList<String> streamIds = new ArrayList<String>();
     InetSocketAddress addr;
 
     public MockEndPoint(InetSocketAddress addr, byte[] mockResponseData){
@@ -28,13 +31,17 @@ public class MockEndPoint implements Endpoint {
     private void init(byte[] mockResponseData) throws Exception{
         mockInputStream = new DelayByteArrayInputStream(mockResponseData);
 
+        //mockInputStream = new DelayPipedInputStream(65536);
+        //PipedOutputStream pos = new PipedOutputStream((PipedInputStream) mockInputStream);
+        //mockInputStream.transferTo(bao);
+
         mockPipedInputStream = new PipedInputStream(65536);
         mockOutputStream = new PipedOutputStream(mockPipedInputStream);
 
         //mockOutputStream = new ByteArrayOutputStream();
 
-        Simplex simplex = new Simplex(mockInputStream, OutputStream.nullOutputStream());
-        simplex.addSimplexEventListener(new Simplex.SimplexEventListener() {
+        Simplex simplexClientToServer = new Simplex(mockPipedInputStream, OutputStream.nullOutputStream());
+        simplexClientToServer.addSimplexEventListener(new Simplex.SimplexEventListener() {
             @Override
             public void onChunkArrived(byte[] data) throws Exception {
                 inputClientData.write(data);
@@ -50,11 +57,17 @@ public class MockEndPoint implements Endpoint {
                 }
                 byte[] ret = inputClientData.toByteArray();
                 inputClientData.reset();
-                String b = ret.toString();
-
                 EncodeHTTP encodeHTTP = new EncodeHTTP("h2");
                 byte [] ret2 = encodeHTTP.decodeClientRequest(ret);
-                Http bb = new Http(ret2);
+                Http http = new Http(ret2);
+                String streamId = http.getHeader("x-packetproxy-http2-stream-id").get(0);
+                //byte[] ret3 = encodeHTTP.decodeServerResponse(mockResponseData);
+                /*Http http_ = new Http(ret3);
+                http_.updateHeader("x-packetproxy-http2-stream-id", streamId);
+                FramesBase http2 = new Http2();
+                pos.write(http2.encodeServerResponse(http_.toByteArray()));*/
+                //mockInputStream.reset();
+                streamIds.add(streamId);
                 return ret;
             }
             @Override
@@ -70,38 +83,7 @@ public class MockEndPoint implements Endpoint {
                 return data;
             }
         });
-        simplex.start();
-
-        /*
-        Thread mockServerThread = new Thread(new Runnable() {
-            public void run() {
-                try {
-                    byte[] inputBuf = new byte[65536];
-                    int inputLen = 0;
-                    while ((inputLen = mockPipedInputStream.read(inputBuf)) > 0) {
-                        EncodeHTTP encodeHTTP = new EncodeHTTP("h2");
-                        String b = inputBuf.toString();
-
-                        //byte httpRaw[] = encodeHTTP.decodeClientRequest(inputBuf);
-                        //Http http = new Http(httpRaw);
-
-                        int a = 1;
-                        a+=1;
-                    }
-                    mockPipedInputStream.close();
-                } catch (Exception e) {
-                    try {
-                        mockPipedInputStream.close();
-
-                    } catch (Exception e1) {
-                        //e1.printStackTrace();
-                    }
-                    //e.printStackTrace();
-                }
-            }
-        });
-        mockServerThread.start();
-        */
+        simplexClientToServer.start();
     }
 
     @Override
@@ -138,16 +120,43 @@ public class MockEndPoint implements Endpoint {
 
         @Override
         public synchronized int read(byte b[], int off, int len){
+            int l=0;
             try {
                 /*
                 TODO: HTTPSでMockResponseを使ったときにHisotry上にレスポンスがリクエストより先に表示されてしまう対策
                 暫定でThread.sleep(millis)を使っているがおそらく重いリクエストが来ると先にレスポンスが出てしまう。
                  */
-                Thread.sleep(300);
+                while(streamIds.size()<=0) {
+                    Thread.sleep(300);
+                }
             }catch (Exception e){
                 e.printStackTrace();
             }
             return super.read(b, off, len);
+        }
+    }
+    class DelayPipedInputStream extends PipedInputStream{
+
+        DelayPipedInputStream(int pipeSize){
+            super(pipeSize);
+        }
+
+        @Override
+        public synchronized int read(byte b[], int off, int len){
+            int l=0;
+            try {
+                /*
+                TODO: HTTPSでMockResponseを使ったときにHisotry上にレスポンスがリクエストより先に表示されてしまう対策
+                暫定でThread.sleep(millis)を使っているがおそらく重いリクエストが来ると先にレスポンスが出てしまう。
+                 */
+                while(streamIds.size()<=0 || l<=0) {
+                    Thread.sleep(300);
+                    l = super.read(b, off, len);
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            return l;
         }
     }
 }
