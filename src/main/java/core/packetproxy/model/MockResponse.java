@@ -128,8 +128,8 @@ public class MockResponse
             Http http = new Http(mockResponse.getBytes());
             http.updateHeader("X-PacketProxy-HTTP2-Flags", "4");
             //TODO: Requestと同じStream-Idを動的に設定する(同じStream-Idでないとクライアント側がframeのparseに失敗するため)
-            http.updateHeader("X-PacketProxy-HTTP2-Stream-Id", "1");
-            http.updateHeader("X-PacketProxy-HTTP2-Stream-UUID", StringUtils.randomUUID());
+            //http.updateHeader("X-PacketProxy-HTTP2-Stream-Id", "1");
+            //http.updateHeader("X-PacketProxy-HTTP2-Stream-UUID", StringUtils.randomUUID());
             FramesBase http2 = new Http2();
             ByteArrayOutputStream out  = new ByteArrayOutputStream();
             out.write(http2.encodeServerResponse(http.toByteArray()));

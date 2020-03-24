@@ -90,6 +90,9 @@ public class Http2 extends FramesBase
 				out.write(dataFrame.getPayload());
 			}
 		}
+		if(out.size()==0){
+			return new byte[0];
+		}
 		Http http = new Http(out.toByteArray());
 		int flags = Integer.valueOf(http.getFirstHeader("X-PacketProxy-HTTP2-Flags"));
 		if (http.getBody() == null || http.getBody().length == 0) {
